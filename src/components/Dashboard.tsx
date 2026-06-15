@@ -1,5 +1,5 @@
-import React from "react";
-import { View, Text, TouchableOpacity, ScrollView, FlatList } from "react-native";
+import React, { useState } from "react";
+import { View, Text, TouchableOpacity, ScrollView } from "react-native";
 import Account from "../db/models/Account";
 import Transaction from "../db/models/Transaction";
 import withObservables from "@nozbe/with-observables";
@@ -18,6 +18,12 @@ const DashboardView: React.FC<DashboardProps> = ({
   onSendPress,
   onReceivePress,
 }) => {
+  const [activeTab, setActiveTab] = useState<"pending" | "settled">("pending");
+
+  const filteredTransactions = transactions.filter((tx) =>
+    activeTab === "pending" ? tx.status === "pending_sync" : tx.status === "settled"
+  );
+
   return (
     <View className="flex-1">
       <ScrollView className="flex-1">
@@ -53,21 +59,43 @@ const DashboardView: React.FC<DashboardProps> = ({
             </TouchableOpacity>
           </View>
 
-          {/* Recent Activity Label */}
-          <View className="flex-row justify-between items-center mb-4 px-2">
-            <Text className="text-white font-bold text-xl">Merchant Outbox</Text>
-            <Text className="text-slate-500 text-xs font-bold uppercase">
-              {transactions.length} Pending
-            </Text>
+          {/* Transaction History Tabs */}
+          <Text className="text-white font-bold text-xl mb-4 px-2">History Viewer</Text>
+          
+          <View className="flex-row bg-slate-800 p-1 rounded-xl mb-6">
+            <TouchableOpacity
+              onPress={() => setActiveTab("pending")}
+              className={`flex-1 p-3 rounded-lg items-center ${
+                activeTab === "pending" ? "bg-slate-700" : ""
+              }`}
+            >
+              <Text className={`font-bold ${activeTab === "pending" ? "text-white" : "text-slate-500"}`}>
+                Pending Sync
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => setActiveTab("settled")}
+              className={`flex-1 p-3 rounded-lg items-center ${
+                activeTab === "settled" ? "bg-slate-700" : ""
+              }`}
+            >
+              <Text className={`font-bold ${activeTab === "settled" ? "text-white" : "text-slate-500"}`}>
+                Settled On-Chain
+              </Text>
+            </TouchableOpacity>
           </View>
 
           {/* Transactions List */}
-          {transactions.length === 0 ? (
+          {filteredTransactions.length === 0 ? (
             <View className="bg-slate-800/50 p-10 rounded-2xl border border-dashed border-slate-700 items-center justify-center">
-              <Text className="text-slate-500 text-center">No pending transactions</Text>
+              <Text className="text-slate-500 text-center">
+                {activeTab === "pending" 
+                  ? "No offline payments waiting to sync" 
+                  : "No settled transactions on the ledger"}
+              </Text>
             </View>
           ) : (
-            transactions.map((tx) => (
+            filteredTransactions.map((tx) => (
               <View
                 key={tx.id}
                 className="bg-slate-800 p-4 rounded-2xl mb-3 border border-slate-700 flex-row justify-between items-center"
@@ -75,20 +103,23 @@ const DashboardView: React.FC<DashboardProps> = ({
                 <View>
                   <Text className="text-white font-bold text-lg">${tx.amount} USDC</Text>
                   <Text className="text-slate-500 text-[10px] uppercase tracking-tighter">
-                    From: {tx.senderPublicKey.slice(0, 8)}...
+                    {activeTab === "pending" ? "Received Offline" : "Verified on Ledger"}
+                  </Text>
+                  <Text className="text-slate-600 text-[9px] mt-1">
+                    {tx.senderPublicKey.slice(0, 12)}...
                   </Text>
                 </View>
                 <View
                   className={`px-3 py-1 rounded-full ${
-                    tx.status === "settled" ? "bg-green-500/20" : "bg-slate-700"
+                    tx.status === "settled" ? "bg-green-500/20" : "bg-blue-500/10"
                   }`}
                 >
                   <Text
                     className={`text-[10px] font-bold uppercase ${
-                      tx.status === "settled" ? "text-green-500" : "text-slate-400"
+                      tx.status === "settled" ? "text-green-500" : "text-blue-400"
                     }`}
                   >
-                    {tx.status === "pending_sync" ? "Offline Cached" : tx.status}
+                    {tx.status === "pending_sync" ? "LOCAL" : "SETTLED"}
                   </Text>
                 </View>
               </View>
