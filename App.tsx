@@ -2,7 +2,7 @@ import "./src/utils/polyfills";
 import "./src/styles/global.css";
 import React, { useEffect, useState } from "react";
 import { StatusBar } from "expo-status-bar";
-import { Text, View, Switch, SafeAreaView, ActivityIndicator } from "react-native";
+import { Text, View, Switch, SafeAreaView, ActivityIndicator, Platform } from "react-native";
 import NetInfo from "@react-native-community/netinfo";
 import { useStore } from "./src/store/useStore";
 import { getActiveAccount, updateAccountBalance } from "./src/db/helpers";
@@ -58,7 +58,6 @@ export default function App() {
     return () => unsubscribe();
   }, []);
 
-  // Sync effect
   useEffect(() => {
     if (isOnline && !isOfflineMode) {
       syncTransactions();
@@ -68,7 +67,7 @@ export default function App() {
 
   if (isLoading) {
     return (
-      <View className="flex-1 bg-slate-900 items-center justify-center">
+      <View className="flex-1 bg-[#e0e5ec] items-center justify-center">
         <ActivityIndicator size="large" color="#3b82f6" />
       </View>
     );
@@ -79,18 +78,21 @@ export default function App() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-slate-900">
+    <SafeAreaView className="flex-1 bg-[#e0e5ec]">
       <View className="flex-row justify-between items-center px-6 py-4">
-        <Text className="text-white text-xl font-bold">Isla Mesh</Text>
-        <View className="flex-row items-center">
-          <Text className="text-slate-400 mr-2 text-[10px] uppercase font-bold">
-            {isOfflineMode ? "Mesh Mode" : "Online Mode"}
+        <Text className="text-[#44475a] text-xl font-black tracking-tight">Isla Mesh</Text>
+        <View 
+            className="flex-row items-center bg-[#e0e5ec] px-3 py-1 rounded-full border border-white/40"
+            style={Platform.OS === 'web' ? { boxShadow: '4px 4px 8px #a3b1c6, -4px -4px 8px #ffffff' } : {}}
+        >
+          <Text className="text-[#7e8ba0] mr-2 text-[10px] uppercase font-bold tracking-widest">
+            {isOfflineMode ? "Mesh" : "Stellar"}
           </Text>
           <Switch
             value={isOfflineMode}
             onValueChange={setOfflineMode}
-            trackColor={{ false: "#334155", true: "#3b82f6" }}
-            thumbColor={isOfflineMode ? "#ffffff" : "#cbd5e1"}
+            trackColor={{ false: "#a3b1c6", true: "#3b82f6" }}
+            thumbColor={isOfflineMode ? "#ffffff" : "#e0e5ec"}
           />
         </View>
       </View>
@@ -111,7 +113,7 @@ export default function App() {
         <ReceiveScreen onBack={() => setCurrentView("dashboard")} />
       )}
 
-      <StatusBar style="light" />
+      <StatusBar style="dark" />
     </SafeAreaView>
   );
 }
